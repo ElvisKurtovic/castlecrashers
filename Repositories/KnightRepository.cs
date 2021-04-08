@@ -17,8 +17,15 @@ namespace castlecrashers.Repositories
 
         internal IEnumerable<Knight> GetAll()
         {
-            string sql = "SELECT * FROM knights;";
-            return _db.Query<Knight>(sql);
+            string sql = @"
+              SELECT * 
+              FROM knights k
+              JOIN castles c ON k.castleId = c.id;";
+            return _db.Query<Knight, Castle, Knight>(sql, (knight, castle) =>
+            {
+                knight.Castle = castle;
+                return knight;
+            });
         }
 
         internal Knight GetById(int id)
@@ -66,7 +73,7 @@ namespace castlecrashers.Repositories
 
 
             string sql = @"
-              SELECT 
+              SELECT
               k.*,
               c.*
               FROM knights k
