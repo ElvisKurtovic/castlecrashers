@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using Dapper;
 using castlecrashers.Models;
+using System.Linq;
 
 namespace castlecrashers.Repositories
 {
@@ -30,9 +31,29 @@ namespace castlecrashers.Repositories
 
         internal Knight GetById(int id)
         {
-            string sql = "SELECT * FROM knights WHERE id = @id;";
-            return _db.QueryFirstOrDefault<Knight>(sql, new { id });
+            string sql = @"SELECT *
+             FROM knights k
+             INNER JOIN castles c ON k.castleId = c.id
+            WHERE k.id = @id;";
+            return _db.Query<Knight, Castle, Knight>(sql, (knight, castle) => { knight.Castle = castle; return knight; }, new { id }).FirstOrDefault();
         }
+
+        // internal IEnumerable<Knight> GetById(int id)
+        // {
+        //     string sql = @"
+        //       SELECT
+        //       k.Id,
+        //       c.*
+        //       FROM knights k
+        //       JOIN castles c ON k.castleId = c.id
+        //       WHERE castleId = @id;";
+
+        //     return _db.Query<Knight, Castle, Knight>(sql, (knight, castle) =>
+        //     {
+        //         knight.Castle = castle;
+        //         return knight;
+        //     }, new { id }, splitOn: "id");
+        // }
 
         internal Knight Create(Knight newKnight)
         {
